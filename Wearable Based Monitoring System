@@ -1,0 +1,84 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// OLED setup
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// Pin Definitions
+#define VOLTAGE_SENSOR_PIN 34   // Analog pin
+#define RELAY_PIN 26
+#define BUZZER_PIN 27
+
+// Threshold (adjust based on your sensor)
+float voltageThreshold = 2.5;  // Example value
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  // OLED Init
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED not found");
+    while (true);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+
+  display.setCursor(0, 10);
+  display.println("Shock Detection");
+  display.display();
+  delay(2000);
+}
+
+void loop() {
+
+  int sensorValue = analogRead(VOLTAGE_SENSOR_PIN);
+
+  // Convert to voltage (ESP32 ADC = 0–4095, 3.3V)
+  float voltage = (sensorValue * 3.3) / 4095.0;
+
+  Serial.print("Voltage: ");
+  Serial.println(voltage);
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("System Status:");
+
+  if (voltage > voltageThreshold) {
+    // SHOCK DETECTED
+    digitalWrite(RELAY_PIN, HIGH);   // Cut power
+    digitalWrite(BUZZER_PIN, HIGH);  // Alert
+
+    display.setCursor(0, 20);
+    display.println("!!! SHOCK !!!");
+    display.setCursor(0, 35);
+    display.println("Relay ON");
+  } else {
+    // NORMAL CONDITION
+    digitalWrite(RELAY_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+
+    display.setCursor(0, 20);
+    display.println("Normal");
+    display.setCursor(0, 35);
+    display.println("Relay OFF");
+  }
+
+  display.setCursor(0, 50);
+  display.print("V: ");
+  display.println(voltage);
+
+  display.display();
+
+  delay(500);
+}
