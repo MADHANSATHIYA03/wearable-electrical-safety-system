@@ -1,0 +1,92 @@
+import java.util.Random;
+
+public class ShockDetectionSystem {
+
+    // Pin Definitions (simulated)
+    static final int VOLTAGE_SENSOR_PIN = 34;
+    static final int RELAY_PIN = 26;
+    static final int BUZZER_PIN = 27;
+
+    // Threshold voltage
+    static final double voltageThreshold = 2.5;
+
+    // Simulated sensor
+    static Random random = new Random();
+
+    public static void setup() {
+        System.out.println("Initializing Shock Detection System...");
+        System.out.println("OLED Display Started");
+        oledDisplay("Shock Detection");
+        sleep(2000);
+    }
+
+    public static void loop() {
+        while (true) {
+
+            // Simulate analogRead (0–4095)
+            int sensorValue = analogRead(VOLTAGE_SENSOR_PIN);
+
+            // Convert to voltage
+            double voltage = (sensorValue * 3.3) / 4095.0;
+
+            System.out.println("Voltage: " + voltage);
+
+            if (voltage > voltageThreshold) {
+                // SHOCK DETECTED
+                digitalWrite(RELAY_PIN, true);   // Relay ON
+                digitalWrite(BUZZER_PIN, true);  // Buzzer ON
+
+                oledDisplay("System Status:\n!!! SHOCK !!!\nRelay ON\nV: " + voltage);
+
+            } else {
+                // NORMAL CONDITION
+                digitalWrite(RELAY_PIN, false);  // Relay OFF
+                digitalWrite(BUZZER_PIN, false); // Buzzer OFF
+
+                oledDisplay("System Status:\nNormal\nRelay OFF\nV: " + voltage);
+            }
+
+            sleep(500);
+        }
+    }
+
+    // Simulated analog read
+    public static int analogRead(int pin) {
+        return random.nextInt(4096);
+    }
+
+    // Simulated digital write
+    public static void digitalWrite(int pin, boolean state) {
+        String status = state ? "ON" : "OFF";
+
+        if (pin == RELAY_PIN) {
+            System.out.println("Relay: " + status);
+        }
+
+        if (pin == BUZZER_PIN) {
+            System.out.println("Buzzer: " + status);
+        }
+    }
+
+    // Simulated OLED Display
+    public static void oledDisplay(String message) {
+        System.out.println("------------ OLED DISPLAY ------------");
+        System.out.println(message);
+        System.out.println("--------------------------------------");
+    }
+
+    // Delay function
+    public static void sleep(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Main Method
+    public static void main(String[] args) {
+        setup();
+        loop();
+    }
+}
